@@ -37,4 +37,5 @@ void loop() {
     count = count - 7;
   }
   delay(1000); 
+  count += 1;
 }
