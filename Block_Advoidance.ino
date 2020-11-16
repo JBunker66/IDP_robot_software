@@ -64,7 +64,7 @@ void loop() {
     motorL->setSpeed(vSpeed);
     for (int i = 0; i <= 100;i=i+1){
       delay(30);
-      if (analogRead(left_sensor_pin)>500){//posative read so crosses line in streight around block
+      if (digitalRead(left_sensor_pin) == 1){//posative read so crosses line in streight around block
         EarlyBreak = true;
         break;
       }
@@ -75,7 +75,7 @@ void loop() {
       delay(BigTurnDelay);
       motorL->setSpeed(vSpeed);
     }
-   if (analogRead(left_sensor_pin)>500){//might need to add a reverse here
+   if (digitalRead(left_sensor_pin) == 1){//might need to add a reverse here //Also is 1 white or black. This is assuming white
     motorL->run(BACKWARD);
     delay(BigTurnDelay);
     motorL->run(FORWARD);
