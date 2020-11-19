@@ -100,7 +100,7 @@ void loop() {
         }
         delay(100);
       }
-      }
+      } 
       // Turning codes goes here
     }
    }
