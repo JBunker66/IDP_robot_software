@@ -31,6 +31,9 @@ boolean hasBlueBlock = false;
 //robot on the left and use to check if robot has made the T turn after the tunnel on the right
 boolean leftSide = false;
 
+//could be used to determine whether the robot is lost, inAction++ if no if statement is matched in a loop;
+int noAction = 0;
+
 void setup() {
   Serial.begin(9600);           
   Serial.println("Adafruit Motorshield v2 - DC Motor test!");
@@ -49,6 +52,20 @@ void setup() {
 
 void loop() {
   uint8_t i;
+
+  //if a if statement is matched, noAction is set to zero
+  noAction++;
+
+  //avoid blocks
+  //possibly need also include Linefind in the block avoidance
+  blockAovidance();
+
+  //pick up block, need to check if block returned to the line after pick up
+  blockPickUp();
+
+  //the robot hit the wall, not sure which sensor is used to do this
+  
+  
 
   //read from OPB line sensor
   left_sensor_state = digitalRead(left_sensor_pin);
@@ -95,25 +112,7 @@ void loop() {
      //set motor to turn 90 degrees to right
      //use OPB line sensor to stop turning right sensor first detects the line and goes off line again
      //or use magnet sensor to make motor turn for certain number of turns or ultrasonic distance sensor to check distance
-     while(true){
-        motorR->setSpeed(0);
-        motorL->setSpeed(turn_speed);
-        delay(turn_delay);
-        
-        right_sensor_state = digitalRead(right_sensor_pin);
-        if(right_sensor_state == 1){
-          while(true){
-            motorR->setSpeed(0);
-            motorL->setSpeed(turn_speed);
-            delay(turn_delay);
-            right_sensor_state = digitalRead(right_sensor_pin);
-            if(right_sensor_state == 0){
-              break;
-            }
-          }
-          break;
-        }
-     }
+    tTurn(0);
     leftSide = false;
   }
 
@@ -157,15 +156,7 @@ void loop() {
              //set motor to turn 90 degrees to right
              //use OPB line sensor to stop turning once left sensor is over the line
              //or use magnet sensor to make motor turn for certain number of turns or ultrasonic distance sensor to check distance
-             while(true){
-                motorR->setSpeed(0);
-                motorL->setSpeed(turn_speed);
-                delay(turn_delay);
-                left_sensor_state = analogRead(left_sensor_pin);
-                if(left_sensor_state < 500){
-                  break;
-                }
-             }
+             tTurn(0);
           }
           break;       
         }        
@@ -186,16 +177,70 @@ void loop() {
   }
 
   //T turn on the left after blue block placed
-  if(right_sensor_state == 1 && leftSide && !hasBlueBlock){
+  if(checkTturnLeft()){
+    if(right_sensor_state == 1 && leftSide && !hasBlueBlock){
     //make the right turn and follow the line to go back to the right side
-
-    
+    tTurn(0);  
+    }
   }
+}
 
+//use ultrasonic sensor to check tunnel
+boolean checkTunnel(){
 
 
   
+}
+
+//use ultrasonic sensor to check the T turn after blue block is placed on the left
+//so that robot can return to right side
+boolean checkTturnLeft(){
 
   
-  
+}
+
+
+//90 degree turn
+void tTurn(int i){
+  if(i == 0){
+    while(true){
+        motorR->setSpeed(0);
+        motorL->setSpeed(turn_speed);
+        delay(turn_delay);
+        
+        right_sensor_state = digitalRead(right_sensor_pin);
+        if(right_sensor_state == 1){
+          while(true){
+            motorR->setSpeed(0);
+            motorL->setSpeed(turn_speed);
+            delay(turn_delay);
+            right_sensor_state = digitalRead(right_sensor_pin);
+            if(right_sensor_state == 0){
+              break;
+            }
+          }
+          break;
+        }
+     }
+  }else{
+    while(true){
+        motorR->setSpeed(turn_speed);
+        motorL->setSpeed(0);
+        delay(turn_delay);
+        
+        left_sensor_state = digitalRead(left_sensor_pin);
+        if(left_sensor_state == 1){
+          while(true){
+            motorR->setSpeed(turn_speed);
+            motorL->setSpeed(0);
+            delay(turn_delay);
+            left_sensor_state = digitalRead(left_sensor_pin);
+            if(left_sensor_state == 0){
+              break;
+            }
+          }
+          break;
+        }
+     }
+  }
 }
