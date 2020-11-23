@@ -57,7 +57,7 @@ void loop() {
   noAction++;
 
   //avoid blocks
-  //possibly need also include Linefind in the block avoidance
+  //possibly need also include Linefind in the block avoidance 
   blockAovidance();
 
   //pick up block, need to check if block returned to the line after pick up
@@ -67,41 +67,9 @@ void loop() {
   
   
 
-  //read from OPB line sensor
-  left_sensor_state = digitalRead(left_sensor_pin);
-  right_sensor_state = digitalRead(right_sensor_pin);
- 
-  //check if right sensor over the line, need to turn right
-  if(right_sensor_state == 1 && left_sensor_state == 0)
-  {
-    Serial.println("turning right");
-    isTurn = true;
-    motorL->setSpeed(turn_speed);
-    delay(turn_delay);
-    }
-
-  //check if left sensor over the line, need to turn right
-  if(right_sensor_state == 0 && left_sensor_state == 1)
-  {
-    Serial.println("turning left");
-    isTurn = true;
-    motorR->setSpeed(turn_speed);
-    delay(turn_delay);
-    }
-    
-  //check if motor move in straight line
-  if(right_sensor_state == 0 && left_sensor_state == 0)
-  {
-    Serial.println("going forward");
+  //basic line following function
+  lineFollowMain();
   
-    //if motor speed is changed for turn, then set it back to normal speed
-    if (isTurn){
-      motorR->setSpeed(vSpeed);
-      motorL->setSpeed(vSpeed);
-    }
-    isTurn = false;
-    delay(turn_delay);
-    }
     
   //both sensor over line, no block is collected & robot on the leftSide, could possibly be used to detect T turn after the tunnel
   if(right_sensor_state == 1 && left_sensor_state == 1 && !hasRedBlock && !hasBlueBlock && leftSide)
@@ -130,12 +98,12 @@ void loop() {
   //Blue block collected and go to the left side
   if(hasBlueBlock && !leftSide){
     if(checkTunnel()){  //use ultrasonic sensor to estimate location of tunnel
-      if(right_sensor_state == 1){ //arrive at centre of the tunnel
+      if(right_sensor_state == 1 || left_sensor_state == 1){ //arrive at centre of the tunnel
         //make the right turn
 
         while(true){
           //line follow to the left side of the tunnel
-      
+          
           //Y turn reached
           if(ultrasonicFront < 100){
             //make the slow right turn
@@ -148,7 +116,7 @@ void loop() {
         }
         while(true){
           //line follow to the T turn on the left
-
+          lineFollowMain();
            //T turn on the left
           if(right_sensor_state == 1 && left_sensor_state == 1)
           { 
@@ -202,6 +170,7 @@ boolean checkTturnLeft(){
 
 //90 degree turn
 void tTurn(int i){
+  //right turn
   if(i == 0){
     while(true){
         motorR->setSpeed(0);
@@ -223,6 +192,7 @@ void tTurn(int i){
         }
      }
   }else{
+    //left turn
     while(true){
         motorR->setSpeed(turn_speed);
         motorL->setSpeed(0);
@@ -243,4 +213,42 @@ void tTurn(int i){
         }
      }
   }
+}
+
+void lineFollowMain(){
+  //read from OPB line sensor
+  left_sensor_state = digitalRead(left_sensor_pin);
+  right_sensor_state = digitalRead(right_sensor_pin);
+ 
+  //check if right sensor over the line, need to turn right
+  if(right_sensor_state == 1 && left_sensor_state == 0)
+  {
+    Serial.println("turning right");
+    isTurn = true;
+    motorL->setSpeed(turn_speed);
+    delay(turn_delay);
+    }
+
+  //check if left sensor over the line, need to turn right
+  if(right_sensor_state == 0 && left_sensor_state == 1)
+  {
+    Serial.println("turning left");
+    isTurn = true;
+    motorR->setSpeed(turn_speed);
+    delay(turn_delay);
+    }
+    
+  //check if motor move in straight line
+  if(right_sensor_state == 0 && left_sensor_state == 0)
+  {
+    Serial.println("going forward");
+  
+    //if motor speed is changed for turn, then set it back to normal speed
+    if (isTurn){
+      motorR->setSpeed(vSpeed);
+      motorL->setSpeed(vSpeed);
+    }
+    isTurn = false;
+    delay(turn_delay);
+    }
 }
