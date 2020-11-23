@@ -8,13 +8,15 @@ Adafruit_DCMotor *RightMotor = AFMS.getMotor(2);
 int count;
 void Streight(void){
     // function-body
+    LeftMotor->setSpeed(135);
     LeftMotor->run(FORWARD);
-    RightMotor->run(FORWARD);
+    RightMotor->run(BACKWARD);
     }
   void Left(void){
     // function-body
-    LeftMotor->run(RELEASE);
-    RightMotor->run(FORWARD);
+    LeftMotor->setSpeed(70);
+    LeftMotor->run(BACKWARD);
+    RightMotor->run(BACKWARD);
     }
 void setup() {
   count = 0;
@@ -23,19 +25,20 @@ void setup() {
   AFMS.begin();
   //To run the motor, call run(direction) where direction is FORWARD, BACKWARD or RELEASE
   
-  LeftMotor->setSpeed(150);
-  RightMotor->setSpeed(150);
+  LeftMotor->setSpeed(135);
+  RightMotor->setSpeed(155);
 }
 
 void loop() {
+  uint8_t i;
   // put your main code here, to run repeatedly:
-  if(count = 0){
+  if(count == 0){
     Streight();
   }
-  if(count = 4){
+  if(count == 8){
     Left();
-    count = count - 7;
+    count = count - 16;
   }
-  delay(1000); 
+  delay(500); 
   count += 1;
 }
