@@ -11,7 +11,8 @@ Adafruit_DCMotor *motorL = AFMS.getMotor(1);
 Adafruit_DCMotor *motorR = AFMS.getMotor(2);
 
 //variable for line following
-  int vSpeed = 110;        // MAX 255
+  int vSpeedRight = 155;        // MAX 255
+  int vSpeedLeft = 135;
   int turn_speed = 230;    // MAX 255 
   int turn_delay = 10;
 
@@ -32,24 +33,27 @@ void setup() {
   AFMS.begin();  // create with the default frequency 1.6KHz
   //AFMS.begin(1000);  // OR with a different frequency, say 1KHz
 
-  motorL->setSpeed(vSpeed);
-  motorR->setSpeed(vSpeed);
+  motorL->setSpeed(vSpeedLeft);
+  motorR->setSpeed(vSpeedRight);
   motorL->run(FORWARD);
-  motorR->run(FORWARD);
+  motorR->run(BACKWARD);
   // turn on motor
   motorL->run(RELEASE);
   motorR->run(RELEASE);
 }
 
 void loop() {
-  uint8_t i;
+  lineFollowMain();
+}
 
+
+void lineFollowMain(){
   //read from OPB line sensor
-  left_sensor_state = analogRead(left_sensor_pin);
-  right_sensor_state = analogRead(right_sensor_pin);
+  left_sensor_state = digitalRead(left_sensor_pin);
+  right_sensor_state = digitalRead(right_sensor_pin);
  
   //check if right sensor over the line, need to turn right
-  if(right_sensor_state > 500 && left_sensor_state < 500)
+  if(right_sensor_state == 1 && left_sensor_state == 0)
   {
     Serial.println("turning right");
     isTurn = true;
@@ -58,7 +62,7 @@ void loop() {
     }
 
   //check if left sensor over the line, need to turn right
-  if(right_sensor_state < 500 && left_sensor_state > 500)
+  if(right_sensor_state == 0 && left_sensor_state == 1)
   {
     Serial.println("turning left");
     isTurn = true;
@@ -67,36 +71,16 @@ void loop() {
     }
     
   //check if motor move in straight line
-  if(right_sensor_state > 500 && left_sensor_state > 500)
+  if(right_sensor_state == 0 && left_sensor_state == 0)
   {
     Serial.println("going forward");
   
     //if motor speed is changed for turn, then set it back to normal speed
     if (isTurn){
-      motorR->setSpeed(vSpeed);
-      motorL->setSpeed(vSpeed);
+      motorR->setSpeed(vSpeedRight);
+      motorL->setSpeed(vSpeedLeft);
     }
     isTurn = false;
     delay(turn_delay);
     }
-    
-  //both sensor over line, could possibly be used to detect T turn after the tunnel
-  if(right_sensor_state < 500 && left_sensor_state < 500)
-  { 
-    //could also use ultrasonic sensor for locating T turn
-
-     delay(10);
-     //set motor to turn 90 degrees to right
-     //use OPB line sensor to stop turning once left sensor is over the line
-     //or use magnet sensor to make motor turn for certain number of turns or ultrasonic distance sensor to check distance
-     while(true){
-        motorR->setSpeed(0);
-        motorL->setSpeed(turn_speed);
-        delay(turn_delay);
-        left_sensor_state = analogRead(left_sensor_pin);
-        if(left_sensor_state < 500){
-          break;
-        }
-     }
-  }
 }

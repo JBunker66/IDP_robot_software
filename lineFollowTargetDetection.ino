@@ -11,7 +11,8 @@ Adafruit_DCMotor *motorL = AFMS.getMotor(1);
 Adafruit_DCMotor *motorR = AFMS.getMotor(2);
 
 //variable for line following
-  int vSpeed = 110;        // MAX 255
+  int vSpeedRight = 155;// MAX 255
+  int vSpeedLeft = 135;
   int turn_speed = 230;    // MAX 255 
   int turn_delay = 10;
 
@@ -41,10 +42,10 @@ void setup() {
   AFMS.begin();  // create with the default frequency 1.6KHz
   //AFMS.begin(1000);  // OR with a different frequency, say 1KHz
 
-  motorL->setSpeed(vSpeed);
-  motorR->setSpeed(vSpeed);
+  motorL->setSpeed(vSpeedLeft);
+  motorR->setSpeed(vSpeedRight);
   motorL->run(FORWARD);
-  motorR->run(FORWARD);
+  motorR->run(BACKWARD);
   // turn on motor
   motorL->run(RELEASE);
   motorR->run(RELEASE);
@@ -67,14 +68,14 @@ void loop() {
   
   
 
-  //basic line following function
+  //basic line following function(finished)
   lineFollowMain();
   
     
   //both sensor over line, no block is collected & robot on the leftSide, could possibly be used to detect T turn after the tunnel
   if(right_sensor_state == 1 && left_sensor_state == 1 && !hasRedBlock && !hasBlueBlock && leftSide)
   { 
-    //could also use ultrasonic sensor for locating T turn
+    //could also use ultrasonic sensor for locating T turn (may not be possible)
 
      delay(10);
      //set motor to turn 90 degrees to right
@@ -104,7 +105,7 @@ void loop() {
         while(true){
           //line follow to the left side of the tunnel
           
-          //Y turn reached
+          //Y turn reached (might use side sensor to check the wall of the tunnel) 
           if(ultrasonicFront < 100){
             //make the slow right turn
             motorR->setSpeed(100);
@@ -170,18 +171,20 @@ boolean checkTturnLeft(){
 
 //90 degree turn
 void tTurn(int i){
+   isTurn = true;
+     
   //right turn
   if(i == 0){
     while(true){
-        motorR->setSpeed(0);
-        motorL->setSpeed(turn_speed);
+        motorR->setSpeed(70);      
+        motorR->run(FORWARD);
         delay(turn_delay);
         
         right_sensor_state = digitalRead(right_sensor_pin);
         if(right_sensor_state == 1){
           while(true){
-            motorR->setSpeed(0);
-            motorL->setSpeed(turn_speed);
+            motorR->setSpeed(70);      
+            motorR->run(FORWARD);
             delay(turn_delay);
             right_sensor_state = digitalRead(right_sensor_pin);
             if(right_sensor_state == 0){
@@ -194,15 +197,15 @@ void tTurn(int i){
   }else{
     //left turn
     while(true){
-        motorR->setSpeed(turn_speed);
-        motorL->setSpeed(0);
+        motorL->setSpeed(70);      
+        motorL->run(BACKWARD);
         delay(turn_delay);
         
         left_sensor_state = digitalRead(left_sensor_pin);
         if(left_sensor_state == 1){
           while(true){
-            motorR->setSpeed(turn_speed);
-            motorL->setSpeed(0);
+            motorL->setSpeed(70);      
+            motorL->run(BACKWARD);
             delay(turn_delay);
             left_sensor_state = digitalRead(left_sensor_pin);
             if(left_sensor_state == 0){
@@ -245,8 +248,8 @@ void lineFollowMain(){
   
     //if motor speed is changed for turn, then set it back to normal speed
     if (isTurn){
-      motorR->setSpeed(vSpeed);
-      motorL->setSpeed(vSpeed);
+      motorR->setSpeed(vSpeedRight);
+      motorL->setSpeed(vSpeedLeft);
     }
     isTurn = false;
     delay(turn_delay);
