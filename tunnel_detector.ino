@@ -30,7 +30,6 @@ boolean hasRedBlock = false;
 boolean hasBlueBlock = false;
 //robot on the left and use to check if robot has made the T turn after the tunnel on the right
 boolean leftSide = false;
-
 // Standard code above
 int tunnel_delay = 0;
 // Replace with real sensor
@@ -38,7 +37,7 @@ int side_sensor = 36, side_sensor_history; // Arbitrary value
 boolean Tunnel_near = false;
 unsigned long delayStart = 0; // the time the delay started
 bool delayRunning = true; // true if still waiting for delay to finish
-
+int line_detector_history, tunnel_counter = 0;
 void setup() {
   Serial.begin(9600);           
   Serial.println("Adafruit Motorshield v2 - DC Motor test!");
@@ -75,26 +74,52 @@ void loop() {
     delayRunning = false; // // prevent this code being run more then once
     Tunnel_near = false;
 }  
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-}
+  if (hasBlueBlock && Tunnel_near && right_sensor_state == 0){ // Right detector sensing white
+    // Reverse code here if needed. Assuming not
+    // Pause timer -- need to do
+    motorL->run(RELEASE);
+    motorR->run(RELEASE);
+    motorR->setSpeed(70);
+    motorL->setSpeed(135);
+    motorL->run(FORWARD);
+    motorR->run(FORWARD);
+    line_detector_history = 1; // Actualy = digital read of line sensor
+    for(int i = 0;  i < 40; i = i+1){
+       // 8 second delay roughly 90 degrees so go for 10
+       delay(250); // 4 times a second should be ok.
+       if(left_sensor_state != line_detector_history){ // current digital read here
+         tunnel_counter +=1;
+       }
+       if(tunnel_counter == 3){
+        break;
+       }
+    }
+    motorL->run(RELEASE);
+    motorR->run(RELEASE);
+    // if not on tunnel line go back to original line
+    if(tunnel_counter != 3){
+      motorR->setSpeed(155);
+      motorL->setSpeed(70);
+      motorL->run(BACKWARD);
+      motorR->run(BACKWARD);
+      tunnel_counter = 0;
+      for(int i = 0;  i < 45; i = i+1){
+       // 8 second delay roughly 90 degrees so go for 10
+       delay(250); // 4 times a second should be ok.
+       if(right_sensor_state != line_detector_history){ // current digital read here
+         tunnel_counter +=1;
+       }
+       if(tunnel_counter == 2){
+        break;
+       line_detector_history = left_sensor_state; // - current digital read
+       }
+    }
+    }
+    // Now should be on a line
+    motorR->setSpeed(155);
+    motorL->setSpeed(135);
+    motorL->run(FORWARD);
+    motorR->run(BACKWARD);
+    }
+    // Can now go to normal line detection
+  }
