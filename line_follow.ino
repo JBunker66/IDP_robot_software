@@ -11,14 +11,15 @@ Adafruit_DCMotor *motorL = AFMS.getMotor(1);
 Adafruit_DCMotor *motorR = AFMS.getMotor(2);
 
 //variable for line following
-  int vSpeedRight = 155;        // MAX 255
-  int vSpeedLeft = 135;
-  int turn_speed = 230;    // MAX 255 
+  int vSpeedRight = 115;        // MAX 255
+  int vSpeedLeft = 100;
+  int turn_speed = 240;
+  int turn_speed_offwheel = 30;// MAX 255 
   int turn_delay = 10;
 
 //OPB line Sensor Connection
-const int left_sensor_pin = A0;
-const int right_sensor_pin = A1;
+const int left_sensor_pin = 0;
+const int right_sensor_pin = 1;
 
 int left_sensor_state;
 int right_sensor_state;
@@ -38,8 +39,8 @@ void setup() {
   motorL->run(FORWARD);
   motorR->run(BACKWARD);
   // turn on motor
-  motorL->run(RELEASE);
-  motorR->run(RELEASE);
+  //motorL->run(RELEASE);
+  //motorR->run(RELEASE);
 }
 
 void loop() {
@@ -58,6 +59,7 @@ void lineFollowMain(){
     Serial.println("turning right");
     isTurn = true;
     motorL->setSpeed(turn_speed);
+    motorR->setSpeed(turn_speed_offwheel);
     delay(turn_delay);
     }
 
@@ -67,6 +69,7 @@ void lineFollowMain(){
     Serial.println("turning left");
     isTurn = true;
     motorR->setSpeed(turn_speed);
+    motorL->setSpeed(turn_speed_offwheel);
     delay(turn_delay);
     }
     
@@ -74,7 +77,8 @@ void lineFollowMain(){
   if(right_sensor_state == 0 && left_sensor_state == 0)
   {
     Serial.println("going forward");
-  
+    motorL->run(FORWARD);
+    motorR->run(BACKWARD);
     //if motor speed is changed for turn, then set it back to normal speed
     if (isTurn){
       motorR->setSpeed(vSpeedRight);
