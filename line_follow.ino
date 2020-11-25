@@ -20,6 +20,7 @@ Adafruit_DCMotor *motorR = AFMS.getMotor(2);
 //OPB line Sensor Connection
 const int left_sensor_pin = 0;
 const int right_sensor_pin = 1;
+const int amber_pin = 12, red_pin = 10,blue_pin = 11;
 
 int left_sensor_state;
 int right_sensor_state;
@@ -30,7 +31,10 @@ int sensor_count_right = 0;
 
 //if robot is set to turn
 boolean isTurn = false;
-
+const int RED = 1, BLUE = 2, AMBER = 3;
+int current_LED = 12;
+unsigned long two_hz_delay = 0;
+boolean ON = false;
 void setup() {
   Serial.begin(9600);           
   Serial.println("Adafruit Motorshield v2 - DC Motor test!");
@@ -45,10 +49,16 @@ void setup() {
   // turn on motor
   //motorL->run(RELEASE);
   //motorR->run(RELEASE);
+  two_hz_delay = millis();
+  pinMode(amber_pin, OUTPUT);
+  pinMode(blue_pin, OUTPUT);
+  pinMode(red_pin, OUTPUT);
+  LED_Change(AMBER);
 }
 
 void loop() {
   lineFollowMain();
+  LED_Flash();
 }
 
 void lineFollowMain(){
@@ -113,4 +123,45 @@ void lineFollowMain(){
     isTurn = false;
     delay(turn_delay);
     }
+}
+// Function to change the LED's colour - quick and dirty improve over weekend
+void LED_Change(int colour){
+  if(colour == RED){
+    digitalWrite(red_pin, HIGH);
+    digitalWrite(blue_pin, LOW);
+    digitalWrite(amber_pin, LOW);
+    current_LED = red_pin;
+    Serial.println("RED");
+  }
+  if(colour == BLUE){
+    digitalWrite(red_pin, LOW);
+    digitalWrite(blue_pin, HIGH);
+    digitalWrite(amber_pin, LOW);
+    current_LED = blue_pin;
+    Serial.println("BLUE");
+  }
+  if(colour == AMBER){
+    digitalWrite(red_pin, LOW);
+    digitalWrite(blue_pin, LOW);
+    digitalWrite(amber_pin, HIGH);
+    Serial.println("AMBER");
+    current_LED = amber_pin;
+  }
+}
+// Function to make the LED flash - if there is a long sub function will need to add this to that to
+void LED_Flash(){
+  
+  if(millis() - two_hz_delay >= 250){
+    if(ON){
+      digitalWrite(current_LED, LOW);
+      Serial.println("OFF");
+      ON = false;
+    }
+    else{
+      digitalWrite(current_LED, HIGH);
+      Serial.println("ON");
+      ON = true;
+    } 
+    two_hz_delay = millis();
+  }
 }
