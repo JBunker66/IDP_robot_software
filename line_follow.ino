@@ -23,6 +23,10 @@ const int right_sensor_pin = 1;
 
 int left_sensor_state;
 int right_sensor_state;
+int left_sensor_state_prev;
+int right_sensor_state_prev;
+int sensor_count_left = 0;
+int sensor_count_right = 0;
 
 //if robot is set to turn
 boolean isTurn = false;
@@ -47,11 +51,33 @@ void loop() {
   lineFollowMain();
 }
 
-
 void lineFollowMain(){
   //read from OPB line sensor
   left_sensor_state = digitalRead(left_sensor_pin);
   right_sensor_state = digitalRead(right_sensor_pin);
+
+  if(left_sensor_state == 1){
+    left_sensor_state_prev = 1;
+  }else{
+    if(sensor_count_left == 10){
+      left_sensor_state_prev = left_sensor_state;
+      sensor_count_left = 0;
+    }else{
+      sensor_count_left++;
+    }   
+  }
+
+  if(right_sensor_state == 1){
+    right_sensor_state_prev = 1;
+  }else{
+    if(sensor_count_right == 10){
+      right_sensor_state_prev = right_sensor_state;
+      sensor_count_right = 0;
+    }else{
+      senso_count_right++;
+    }   
+  }
+  
  
   //check if right sensor over the line, need to turn right
   if(right_sensor_state == 1 && left_sensor_state == 0)
