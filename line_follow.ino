@@ -34,7 +34,7 @@ boolean isTurn = false;
 const int RED = 1, BLUE = 2, AMBER = 3;
 int current_LED = 12;
 unsigned long two_hz_delay = 0;
-boolean ON = false;
+boolean AmberON = false, On = true, BlueOn = false;
 void setup() {
   Serial.begin(9600);           
   Serial.println("Adafruit Motorshield v2 - DC Motor test!");
@@ -53,7 +53,6 @@ void setup() {
   pinMode(amber_pin, OUTPUT);
   pinMode(blue_pin, OUTPUT);
   pinMode(red_pin, OUTPUT);
-  LED_Change(AMBER);
 }
 
 void loop() {
@@ -125,28 +124,20 @@ void lineFollowMain(){
     }
 }
 // Function to change the LED's colour - quick and dirty improve over weekend
-void LED_Change(int colour){
-  if(colour == RED){
-    digitalWrite(red_pin, HIGH);
-    digitalWrite(blue_pin, LOW);
-    digitalWrite(amber_pin, LOW);
-    current_LED = red_pin;
-    Serial.println("RED");
-  }
-  if(colour == BLUE){
-    digitalWrite(red_pin, LOW);
-    digitalWrite(blue_pin, HIGH);
-    digitalWrite(amber_pin, LOW);
-    current_LED = blue_pin;
-    Serial.println("BLUE");
-  }
-  if(colour == AMBER){
-    digitalWrite(red_pin, LOW);
-    digitalWrite(blue_pin, LOW);
-    digitalWrite(amber_pin, HIGH);
-    Serial.println("AMBER");
-    current_LED = amber_pin;
-  }
+void LED_Change(int colour, boolean ONf){
+ if (colour == RED){
+  current_LED = red_pin;
+ }
+ if (colour == BLUE){
+  current_LED = blue_pin;
+ }
+ if(ONf){
+  digitalWrite(current_LED, HIGH);
+ }
+ else{
+  digitalWrite(current_LED, LOW);
+ }
+ 
 }
 // Function to make the LED flash - if there is a long sub function will need to add this to that to
 void LED_Flash(){
