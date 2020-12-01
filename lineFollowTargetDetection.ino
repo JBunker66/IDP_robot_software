@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
+//#include <TimerOne.h>
 
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
@@ -89,10 +90,27 @@ void setup() {
   motorL->run(RELEASE);
   motorR->run(RELEASE);
   pinMode(7, OUTPUT); // For colour test
-  pinMode(amber_pin, OUTPUT);
+  
   pinMode(blue_pin, OUTPUT);
   pinMode(red_pin, OUTPUT);
+  pinMode(amber_pin, OUTPUT);
+
+//  //amber LED interrupt set up
+//  Timer1.initialize(150000);
+//  Timer1.attachInterrupt(amberLEDInterrupt); // blinkLED to run every 0.15 seconds
+  
 }
+
+
+//amber LED interrrupt
+//void amberLEDInterrupt(void){
+//  if(!hasRedBlock && !hasBlueBlock){
+//    digitalWrite(amber_pin, !digitalRead(amber_pin));
+//  }else{
+//    digitalWrite(amber_pin, LOW);
+//  }
+//}
+
 
 void loop() {
   uint8_t i;
@@ -385,7 +403,7 @@ void tTurn(int i){
 }
 
 void lineFollowMain(){
-  LED_Flash();
+//  LED_Flash();
   
   //read from OPB line sensor
   left_sensor_state = digitalRead(left_sensor_pin);
