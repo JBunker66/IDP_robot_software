@@ -16,6 +16,7 @@ Adafruit_DCMotor *pincerR = AFMS.getMotor(4);
   int vSpeedRight = 115;        // MAX 255
   int vSpeedLeft = 100;
   int turn_speed = 240;
+  int slow_speed = 70;
   int turn_speed_offwheel = 30;// MAX 255 
   int turn_delay = 10;
 
@@ -520,19 +521,30 @@ void blockPlacing(){
 }
 
 void blockAvoidance(){
+    // Reverse section?
     //set up a 90 degree left turn (might make seporate 90 turn functions if reused a lot)
-    motorR->setSpeed(turn_speed);
-    delay(1000); //BigTurnDelay
+    motorL->setSpeed(slow_speed);
+    for(int i = 0;  i < 40; i = i+1){
+      delay(100); //BigTurnDelay
+      LED_Flash();
+    }
     //sets up a streight section
-    motorR->setSpeed(vSpeedRight);
-    delay(2000);
-    //Turns right and goes forward
-    motorL->setSpeed(turn_speed);
-    delay(1000); //BigTurnDelay
     motorL->setSpeed(vSpeedLeft);
+    for(int i = 0;  i < 20; i = i+1){
+      delay(100); //BigTurnDelay
+      LED_Flash();
+    }
+    //Turns right and goes forward
+    motorR->setSpeed(slow_speed);
+    for(int i = 0;  i < 40; i = i+1){
+      delay(100); //BigTurnDelay
+      LED_Flash();
+    }
+    motorR->setSpeed(vSpeedRight);
     boolean EarlyBreak = false;
     for (int i = 0; i <= 100;i=i+1){
       delay(30);
+      LED_Flash();
       if (digitalRead(left_sensor_pin) == 1){//posative read so crosses line in streight around block
         EarlyBreak = true;
         break;
@@ -540,13 +552,19 @@ void blockAvoidance(){
     }
     //Turns right again and returns to line location
     if (not EarlyBreak){
-      motorL->setSpeed(turn_speed);
-      delay(1000);//BigTurnDelay
-      motorL->setSpeed(vSpeedLeft);
+      motorR->setSpeed(slow_speed);
+      for(int i = 0;  i < 40; i = i+1){
+        delay(100); //BigTurnDelay
+        LED_Flash();
+        }
+      motorR->setSpeed(vSpeedRight);
     }
    if (digitalRead(left_sensor_pin) == 1){//might need to add a reverse here //Also is 1 white or black. This is assuming white
     motorL->run(BACKWARD);
-    delay(1000);//BigTurnSpeed
+    for(int i = 0;  i < 40; i = i+1){ // Delay is shot in the dark
+        delay(100); //BigTurnDelay
+        LED_Flash();
+        }
     motorL->run(FORWARD);
    }
 //Hopefully this works. Will have to adjust the timings and speeds
