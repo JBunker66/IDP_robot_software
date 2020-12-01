@@ -102,7 +102,12 @@ void loop() {
 
   //avoid blocks
   //possibly need also include Linefind in the block avoidance 
-  blockAovidance();
+  if(hasRedBlock || hasBlueBlock){
+    distanceBlock = analogRead(Front_sensor_pin);
+    if (distanceBlock < 20){
+      blockAvoidance();
+    }
+  }
 
   //pick up block, need to check if block returned to the line after pick up
   blockPickUp();
@@ -189,12 +194,12 @@ void loop() {
             //line follow to the left side of the tunnel
             lineFollowMain();
             //Y turn reached, use side sensor to check the wall of the tunnel 
-            if(analogRead(side_sensor_pin) - side_sensor_history > 300)){
+            if(analogRead(side_sensor_pin) - side_sensor_history > 300){
               //make the slow right turn
               motorR->setSpeed(100);
               motorL->setSpeed(150);
               delay(20);
-              rightSide = true;
+              leftSide = true;
               break;
             }else{
               side_sensor_history = analogRead(side_sensor_pin);
@@ -380,6 +385,8 @@ void tTurn(int i){
 }
 
 void lineFollowMain(){
+  LED_Flash();
+  
   //read from OPB line sensor
   left_sensor_state = digitalRead(left_sensor_pin);
   right_sensor_state = digitalRead(right_sensor_pin);
@@ -402,7 +409,7 @@ void lineFollowMain(){
       right_sensor_state_prev = right_sensor_state;
       sensor_count_right = 0;
     }else{
-      senso_count_right++;
+      sensor_count_right++;
     }   
   }
   
@@ -446,12 +453,17 @@ void lineFollowMain(){
 void blockPlacing(){
     motorL->run(RELEASE); // Stops motors then picks up blocks
     motorR->run(RELEASE);
-    pincerL->run(pincer_speed); // Picks up blocks
-    pincerR->run(pincer_speed);
+    pincerL->run(-pincer_speed); // place the blocks
+    pincerR->run(-pincer_speed);
     delay(pincer_delay);
 
-    //change LED
-    
+    //turn off red/blue LED
+    LED_Change(RED,false);
+    LED_Change(BLUE,false);
+
+    hasRedBlock = false;
+    hasBlueBlock = false;
+       
     //block placed, move backward a bit
     motorL->run(BACKWARD); // Sets motors going backward 
     motorR->run(FORWARD);
@@ -461,7 +473,39 @@ void blockPlacing(){
     motorR->run(BACKWARD);
 }
 
-
+void blockAvoidance(){
+    //set up a 90 degree left turn (might make seporate 90 turn functions if reused a lot)
+    motorR->setSpeed(turn_speed);
+    delay(1000); //BigTurnDelay
+    //sets up a streight section
+    motorR->setSpeed(vSpeedRight);
+    delay(2000);
+    //Turns right and goes forward
+    motorL->setSpeed(turn_speed);
+    delay(1000); //BigTurnDelay
+    motorL->setSpeed(vSpeedLeft);
+    boolean EarlyBreak = false;
+    for (int i = 0; i <= 100;i=i+1){
+      delay(30);
+      if (digitalRead(left_sensor_pin) == 1){//posative read so crosses line in streight around block
+        EarlyBreak = true;
+        break;
+      }
+    }
+    //Turns right again and returns to line location
+    if (not EarlyBreak){
+      motorL->setSpeed(turn_speed);
+      delay(1000);//BigTurnDelay
+      motorL->setSpeed(vSpeedLeft);
+    }
+   if (digitalRead(left_sensor_pin) == 1){//might need to add a reverse here //Also is 1 white or black. This is assuming white
+    motorL->run(BACKWARD);
+    delay(1000);//BigTurnSpeed
+    motorL->run(FORWARD);
+   }
+//Hopefully this works. Will have to adjust the timings and speeds
+  
+}
 
 
 
@@ -486,10 +530,12 @@ void blockPickUp(){ // Assuming this is also used for ditection
       sensorValue2 = analogRead(sensorPin2);
  // Serial.println(sensorValue2);
       if ((sensorValue1) > sensorValue2){
-        LED_Change(RED,ON);
+        LED_Change(RED,true);
+        hasRedBlock = true;
       }
       else{
-        LED_Change(BLUE,ON);
+        LED_Change(BLUE,true);
+        hasBlueBlock = true;
       }
 
       Serial.print(red_blue);
@@ -515,8 +561,8 @@ void LED_Change(int colour, boolean ONf){
 
 // Function to make the LED flash - if there is a long sub function will need to add this to that to
 void LED_Flash(){
-  
-  if(millis() - two_hz_delay >= 250){
+  if(!hasRedBlock && !hasBlueBlock){
+    if(millis() - two_hz_delay >= 250){
     if(AmberON){
       digitalWrite(amber_pin, LOW);
       Serial.println("OFF");
@@ -528,5 +574,6 @@ void LED_Flash(){
       AmberON = true;
     } 
     two_hz_delay = millis();
+  }    
   }
 }
