@@ -9,7 +9,8 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 // Get motor in port 1 & 2
 Adafruit_DCMotor *motorL = AFMS.getMotor(1);
 Adafruit_DCMotor *motorR = AFMS.getMotor(2);
-
+Adafruit_DCMotor *pincerL = AFMS.getMotor(3);
+Adafruit_DCMotor *pincerR = AFMS.getMotor(4);
 //variable for line following
   int vSpeedRight = 115;        // MAX 255
   int vSpeedLeft = 100;
@@ -17,9 +18,14 @@ Adafruit_DCMotor *motorR = AFMS.getMotor(2);
   int turn_speed_offwheel = 30;// MAX 255 
   int turn_delay = 10;
 
+// Variables for pincers
+  int pincer_speed = 80;
+  int pincer_delay = 1000;
+
 //OPB line Sensor Connection
 const int left_sensor_pin = A0;
 const int right_sensor_pin = A1;
+const int amber_pin = 12, red_pin = 10,blue_pin = 11;
 
 int left_sensor_state;
 int right_sensor_state;
@@ -49,7 +55,23 @@ unsigned long delayStart = 0, delayPause; // the time the delay started
 bool delayRunning = true; // true if still waiting for delay to finish
 int line_detector_history, tunnel_counter = 0;
 
+const int Front_sensor_pin = 8; // Set to real pin
+int distanceBlock;
 
+// Sensors for colour test
+int sensorPin0 = A0;    // select the input pin for the potentiometer
+int sensorValue0 = 0;  // variable to store the value coming from the sensor
+int sensorPin1 = A1;    // select the input pin for the potentiometer
+int sensorValue1 = 0;  // variable to store the value coming from the sensor
+int sensorPin2 = A2;    // select the input pin for the potentiometer
+int sensorValue2 = 0;  // variable to store the value coming from the sensor
+int red_blue = 0;
+
+// LED variables
+const int RED = 1, BLUE = 2, AMBER = 3;
+int current_LED = 12;
+unsigned long two_hz_delay = 0;
+boolean AmberON = false, On = true, BlueOn = false;
 void setup() {
   Serial.begin(9600);           
   Serial.println("Adafruit Motorshield v2 - DC Motor test!");
@@ -59,11 +81,17 @@ void setup() {
 
   motorL->setSpeed(vSpeedLeft);
   motorR->setSpeed(vSpeedRight);
+  pincerL->setSpeed(pincer_speed);
+  pincerR->setSpeed(pincer_speed);
   motorL->run(FORWARD);
   motorR->run(BACKWARD);
   // turn on motor
   motorL->run(RELEASE);
   motorR->run(RELEASE);
+  pinMode(7, OUTPUT); // For colour test
+  pinMode(amber_pin, OUTPUT);
+  pinMode(blue_pin, OUTPUT);
+  pinMode(red_pin, OUTPUT);
 }
 
 void loop() {
@@ -361,4 +389,67 @@ void lineFollowMain(){
     isTurn = false;
     delay(turn_delay);
     }
+}
+void blockPickUp(){ // Assuming this is also used for ditection
+  distanceBlock = analogRead(Front_sensor_pin);
+  if(distanceBlock < 20 && not hasBlueBlock && not hasRedBlock){ // Unlikly distance block is correct
+      motorL->run(RELEASE); // Stops motors then picks up blocks
+      motorR->run(RELEASE);
+      pincerL->run(pincer_speed); // Picks up blocks
+      pincerR->run(pincer_speed);
+      delay(pincer_delay);
+      digitalWrite(7, HIGH); // turn blue LED on
+      // Might need a delay
+      sensorValue0 = analogRead(sensorPin0);
+//  Serial.println(sensorValue0);
+  
+      sensorValue1 = analogRead(sensorPin1);
+ // Serial.println(sensorValue1);
+  
+      sensorValue2 = analogRead(sensorPin2);
+ // Serial.println(sensorValue2);
+      if ((sensorValue1) > sensorValue2){
+        LED_Change(RED,ON);
+      }
+      else{
+        LED_Change(BLUE,ON);
+      }
+
+      Serial.print(red_blue);
+      motorL->run(FORWARD); // Sets motors going forward again
+      motorR->run(BACKWARD);
+  }
+}
+// Function to change the LED's colour - quick and dirty improve over weekend
+void LED_Change(int colour, boolean ONf){
+ if (colour == RED){
+  current_LED = red_pin;
+ }
+ if (colour == BLUE){
+  current_LED = blue_pin;
+ }
+ if(ONf){
+  digitalWrite(current_LED, HIGH);
+ }
+ else{
+  digitalWrite(current_LED, LOW);
+ }
+ 
+}
+// Function to make the LED flash - if there is a long sub function will need to add this to that to
+void LED_Flash(){
+  
+  if(millis() - two_hz_delay >= 250){
+    if(AmberON){
+      digitalWrite(amber_pin, LOW);
+      Serial.println("OFF");
+      AmberON = false;
+    }
+    else{
+      digitalWrite(amber_pin, HIGH);
+      Serial.println("ON");
+      AmberON = true;
+    } 
+    two_hz_delay = millis();
+  }
 }
