@@ -134,6 +134,7 @@ void loop() {
     motorL->setSpeed(0);
     
     //the block can be placed on the target
+    blockPlacing();
     
     //block is placed and the robot go around the block to move forward 
     blockAvoidance();
@@ -247,6 +248,7 @@ void loop() {
     motorL->setSpeed(0);
     
     //the block can be placed on the target
+    blockPlacing();
     
     //block is placed and the robot go around the block to move forward 
     blockAvoidance();
@@ -440,6 +442,31 @@ void lineFollowMain(){
     delay(turn_delay);
     }
 }
+
+void blockPlacing(){
+    motorL->run(RELEASE); // Stops motors then picks up blocks
+    motorR->run(RELEASE);
+    pincerL->run(pincer_speed); // Picks up blocks
+    pincerR->run(pincer_speed);
+    delay(pincer_delay);
+
+    //change LED
+    
+    //block placed, move backward a bit
+    motorL->run(BACKWARD); // Sets motors going backward 
+    motorR->run(FORWARD);
+    delay(200);
+
+    motorL->run(FORWARD); // Sets motors going forward
+    motorR->run(BACKWARD);
+}
+
+
+
+
+
+
+
 void blockPickUp(){ // Assuming this is also used for ditection
   distanceBlock = analogRead(Front_sensor_pin);
   if(distanceBlock < 20 && not hasBlueBlock && not hasRedBlock){ // Unlikly distance block is correct
@@ -483,9 +510,9 @@ void LED_Change(int colour, boolean ONf){
  }
  else{
   digitalWrite(current_LED, LOW);
- }
- 
+ } 
 }
+
 // Function to make the LED flash - if there is a long sub function will need to add this to that to
 void LED_Flash(){
   
