@@ -73,6 +73,12 @@ const int RED = 1, BLUE = 2, AMBER = 3;
 int current_LED = 12;
 unsigned long two_hz_delay = 0;
 boolean AmberON = false, On = true, BlueOn = false;
+
+//ultrasonic sensor pin
+const int trigPin = 9;
+const int echoPin = 10;
+float duration, distance;
+
 void setup() {
   Serial.begin(9600);           
   Serial.println("Adafruit Motorshield v2 - DC Motor test!");
@@ -94,6 +100,9 @@ void setup() {
   pinMode(blue_pin, OUTPUT);
   pinMode(red_pin, OUTPUT);
   pinMode(amber_pin, OUTPUT);
+
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 
 //  //amber LED interrupt set up
 //  Timer1.initialize(150000);
@@ -166,12 +175,12 @@ void loop() {
   //Blue block collected and go to the left side
   if(hasBlueBlock && !leftSide){
       if (tunnel_delay = 10){// Dont want to check every loop so difference is clear, but short enough that corners dont trigger
-      if((side_sensor_history - analogRead(side_sensor_pin)) < -450){ // Distance but might have to use voltage
+      if((side_sensor_history - ultrasonicDistance(side_sensor_pin)) < -450){ // Distance but might have to use voltage
         Tunnel_near = true;
         delayRunning = true;
         delayStart = millis(); // Start delay
       }
-        side_sensor_history = analogRead(side_sensor_pin);
+        side_sensor_history = ultrasonicDistance(side_sensor_pin);
         tunnel_delay = 0;
       }else{
         tunnel_delay += 1;
@@ -207,12 +216,12 @@ void loop() {
             motorL->run(RELEASE);
             motorR->run(RELEASE);
            //right turn finished, go to the left side
-           side_sensor_history = analogRead(side_sensor_pin);
+           side_sensor_history = ultrasonicDistance(side_sensor_pin);
             while(true){
             //line follow to the left side of the tunnel
             lineFollowMain();
             //Y turn reached, use side sensor to check the wall of the tunnel 
-            if(analogRead(side_sensor_pin) - side_sensor_history > 300){
+            if(ultrasonicDistance(side_sensor_pin) - side_sensor_history > 300){
               //make the slow right turn
               motorR->setSpeed(100);
               motorL->setSpeed(150);
@@ -220,7 +229,7 @@ void loop() {
               leftSide = true;
               break;
             }else{
-              side_sensor_history = analogRead(side_sensor_pin);
+              side_sensor_history = ultrasonicDistance(side_sensor_pin);
             }
            
           } 
@@ -307,7 +316,7 @@ void loop() {
             motorL->run(RELEASE);
             motorR->run(RELEASE);
            //right turn finished, go to the left side
-           side_sensor_history = analogRead(side_sensor_pin);
+           side_sensor_history = ultrasonicDistance(side_sensor_pin);
            }
            
           if(tunnel_counter != 3){
@@ -466,6 +475,21 @@ void lineFollowMain(){
     isTurn = false;
     delay(turn_delay);
     }
+}
+
+int ultrasonicDistance(int pin){
+    
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration*.0343)/2;
+  return (int) distance;
+
+  
 }
 
 void blockPlacing(){
