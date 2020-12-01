@@ -253,11 +253,61 @@ void loop() {
   }
 
   //T turn on the left after blue block placed
+   //T turn on the left after blue block placed
   if(checkTturnLeft()){
-    if(right_sensor_state == 1 && leftSide && !hasBlueBlock){
-    //make the right turn and follow the line to go back to the right side
-    tTurn(0);  
-    }
+
+     if(!hasBlueBlock && leftSide){
+      if(true){  //use ultrasonic sensor to estimate location of tunnel
+        if(right_sensor_state == 0){ //arrive at centre of the tunnel
+        //make the right turn
+        // Reverse code here if needed. Assuming not
+        delayPause = millis();// Pause timer
+        motorL->run(RELEASE);
+        motorR->run(RELEASE);
+        motorR->setSpeed(70);
+        motorL->setSpeed(135);
+        motorL->run(FORWARD);
+        motorR->run(FORWARD);
+        line_detector_history = digitalRead(1); // Actualy = digital read of line sensor
+        for(int i = 0;  i < 40; i = i+1){
+           // 8 second delay roughly 90 degrees so go for 10 for 100 degree
+           delay(250); // 4 times a second should be ok.
+           if(digitalRead(1) != line_detector_history){ // Checks to see if state changes and if it does updates the history
+             tunnel_counter +=1;
+             line_detector_history = digitalRead(1);
+           }
+           if(tunnel_counter == 3){
+            Tunnel_near = true;
+            delayRunning = true;
+            motorL->run(RELEASE);
+            motorR->run(RELEASE);
+           //right turn finished, go to the left side
+           side_sensor_history = analogRead(side_sensor_pin);
+           }
+           
+          if(tunnel_counter != 3){
+                      motorR->setSpeed(155);
+                      motorL->setSpeed(70);
+                      motorL->run(BACKWARD);
+                      motorR->run(BACKWARD);
+                      tunnel_counter = 0;
+                      for(int i = 0;  i < 45; i = i+1){
+                       // 8 second delay roughly 90 degrees so go for 10
+                       delay(250); // 4 times a second should be ok.
+                       if(right_sensor_state != line_detector_history){ // current digital read here
+                         tunnel_counter +=1;
+                         line_detector_history = digitalRead(left_sensor_pin); // - current digital read
+                       }
+                       if(tunnel_counter == 2){
+                        delayStart = delayPause - delayStart;
+                        break;
+                       }
+                    }
+                   }  
+            }
+         }
+      }
+     }
   }
 }
 
