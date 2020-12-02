@@ -610,6 +610,7 @@ void blockPickUp(){ // Assuming this is also used for ditection
       Serial.print(red_blue);
       motorL->run(FORWARD); // Sets motors going forward again
       motorR->run(BACKWARD);
+      digitalWrite(7, LOW);
   }
 }
 
