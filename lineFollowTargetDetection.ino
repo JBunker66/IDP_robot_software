@@ -16,6 +16,7 @@ Adafruit_DCMotor *pincerR = AFMS.getMotor(4);
   int vSpeedRight = 115;        // MAX 255
   int vSpeedLeft = 100;
   int turn_speed = 240;
+  int slow_speed = 70;
   int turn_speed_offwheel = 30;// MAX 255 
   int turn_delay = 10;
 
@@ -72,7 +73,7 @@ int red_blue = 0;
 const int RED = 1, BLUE = 2, AMBER = 3;
 int current_LED = 12;
 unsigned long two_hz_delay = 0;
-boolean AmberON = false, On = true, BlueOn = false;
+boolean AmberON = false, On = true, Off = false;
 
 //ultrasonic sensor pin
 const int trigPin = 9;
@@ -123,7 +124,7 @@ void setup() {
 
 void loop() {
   uint8_t i;
-
+  LED_Flash();
   //if a if statement is matched, noAction is set to zero
   noAction++;
 
@@ -204,6 +205,7 @@ void loop() {
         motorR->run(FORWARD);
         line_detector_history = digitalRead(1); // Actualy = digital read of line sensor
         for(int i = 0;  i < 40; i = i+1){
+           LED_Flash();
            // 8 second delay roughly 90 degrees so go for 10 for 100 degree
            delay(250); // 4 times a second should be ok.
            if(digitalRead(1) != line_detector_history){ // Checks to see if state changes and if it does updates the history
@@ -258,6 +260,7 @@ void loop() {
             tunnel_counter = 0;
             for(int i = 0;  i < 45; i = i+1){
              // 8 second delay roughly 90 degrees so go for 10
+             LED_Flash();
              delay(250); // 4 times a second should be ok.
              if(right_sensor_state != line_detector_history){ // current digital read here
                tunnel_counter +=1;
@@ -306,6 +309,7 @@ void loop() {
         for(int i = 0;  i < 40; i = i+1){
            // 8 second delay roughly 90 degrees so go for 10 for 100 degree
            delay(250); // 4 times a second should be ok.
+           LED_Flash();
            if(digitalRead(1) != line_detector_history){ // Checks to see if state changes and if it does updates the history
              tunnel_counter +=1;
              line_detector_history = digitalRead(1);
@@ -327,6 +331,7 @@ void loop() {
                       tunnel_counter = 0;
                       for(int i = 0;  i < 45; i = i+1){
                        // 8 second delay roughly 90 degrees so go for 10
+                       LED_Flash();
                        delay(250); // 4 times a second should be ok.
                        if(right_sensor_state != line_detector_history){ // current digital read here
                          tunnel_counter +=1;
@@ -393,7 +398,7 @@ void tTurn(int i){
         motorL->setSpeed(70);      
         motorL->run(BACKWARD);
         delay(turn_delay);
-        
+        LED_Flash();
         left_sensor_state = digitalRead(left_sensor_pin);
         if(left_sensor_state == 1){
           while(true){
@@ -495,8 +500,8 @@ int ultrasonicDistance(int pin){
 void blockPlacing(){
     motorL->run(RELEASE); // Stops motors then picks up blocks
     motorR->run(RELEASE);
-    pincerL->run(-pincer_speed); // place the blocks
-    pincerR->run(-pincer_speed);
+    pincerL->run(FORWARD); // place the blocks
+    pincerR->run(BACKWARD);
     delay(pincer_delay);
 
     //turn off red/blue LED
@@ -510,25 +515,36 @@ void blockPlacing(){
     motorL->run(BACKWARD); // Sets motors going backward 
     motorR->run(FORWARD);
     delay(200);
-
+    LED_Flash();
     motorL->run(FORWARD); // Sets motors going forward
     motorR->run(BACKWARD);
 }
 
 void blockAvoidance(){
+    // Reverse section?
     //set up a 90 degree left turn (might make seporate 90 turn functions if reused a lot)
-    motorR->setSpeed(turn_speed);
-    delay(1000); //BigTurnDelay
+    motorL->setSpeed(slow_speed);
+    for(int i = 0;  i < 40; i = i+1){
+      delay(100); //BigTurnDelay
+      LED_Flash();
+    }
     //sets up a streight section
-    motorR->setSpeed(vSpeedRight);
-    delay(2000);
-    //Turns right and goes forward
-    motorL->setSpeed(turn_speed);
-    delay(1000); //BigTurnDelay
     motorL->setSpeed(vSpeedLeft);
+    for(int i = 0;  i < 20; i = i+1){
+      delay(100); //BigTurnDelay
+      LED_Flash();
+    }
+    //Turns right and goes forward
+    motorR->setSpeed(slow_speed);
+    for(int i = 0;  i < 40; i = i+1){
+      delay(100); //BigTurnDelay
+      LED_Flash();
+    }
+    motorR->setSpeed(vSpeedRight);
     boolean EarlyBreak = false;
     for (int i = 0; i <= 100;i=i+1){
       delay(30);
+      LED_Flash();
       if (digitalRead(left_sensor_pin) == 1){//posative read so crosses line in streight around block
         EarlyBreak = true;
         break;
@@ -536,13 +552,19 @@ void blockAvoidance(){
     }
     //Turns right again and returns to line location
     if (not EarlyBreak){
-      motorL->setSpeed(turn_speed);
-      delay(1000);//BigTurnDelay
-      motorL->setSpeed(vSpeedLeft);
+      motorR->setSpeed(slow_speed);
+      for(int i = 0;  i < 40; i = i+1){
+        delay(100); //BigTurnDelay
+        LED_Flash();
+        }
+      motorR->setSpeed(vSpeedRight);
     }
    if (digitalRead(left_sensor_pin) == 1){//might need to add a reverse here //Also is 1 white or black. This is assuming white
     motorL->run(BACKWARD);
-    delay(1000);//BigTurnSpeed
+    for(int i = 0;  i < 40; i = i+1){ // Delay is shot in the dark
+        delay(100); //BigTurnDelay
+        LED_Flash();
+        }
     motorL->run(FORWARD);
    }
 //Hopefully this works. Will have to adjust the timings and speeds
