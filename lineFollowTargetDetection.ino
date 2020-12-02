@@ -585,6 +585,7 @@ void blockPickUp(){ // Assuming this is also used for ditection
       motorR->run(BACKWARD);
   }
 }
+
 // Function to change the LED's colour - quick and dirty improve over weekend
 void LED_Change(int colour, boolean ONf){
  if (colour == RED){
