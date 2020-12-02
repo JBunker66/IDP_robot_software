@@ -27,7 +27,6 @@ Adafruit_DCMotor *pincerR = AFMS.getMotor(4);
 //OPB line Sensor Connection
 const int left_sensor_pin = 7;
 const int right_sensor_pin = 8;
-const int amber_pin = 12, red_pin = 10,blue_pin = 11;
 
 int left_sensor_state;
 int right_sensor_state;
@@ -57,7 +56,7 @@ unsigned long delayStart = 0, delayPause; // the time the delay started
 bool delayRunning = true; // true if still waiting for delay to finish
 int line_detector_history, tunnel_counter = 0;
 
-const int Front_sensor_pin = 8; // Set to real pin
+const int Front_sensor_pin = 5; // Set to real pin
 int distanceBlock;
 
 // Sensors for colour test
@@ -474,7 +473,7 @@ void lineFollowMain(){
   //check if motor move in straight line
   if(right_sensor_state == 0 && left_sensor_state == 0)
   {
-    Serial.println("going forward");
+    //Serial.println("going forward");
     motorL->run(FORWARD);
     motorR->run(BACKWARD);
     //if motor speed is changed for turn, then set it back to normal speed
@@ -582,6 +581,7 @@ void blockAvoidance(){
 
 void blockPickUp(){ // Assuming this is also used for ditection
   distanceBlock = analogRead(Front_sensor_pin);
+  Serial.println(distanceBlock);
   if(distanceBlock < 20 && not hasBlueBlock && not hasRedBlock){ // Unlikly distance block is correct
       motorL->run(RELEASE); // Stops motors then picks up blocks
       motorR->run(RELEASE);
