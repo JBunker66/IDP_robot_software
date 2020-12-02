@@ -25,8 +25,8 @@ Adafruit_DCMotor *pincerR = AFMS.getMotor(4);
   int pincer_delay = 1000;
 
 //OPB line Sensor Connection
-const int left_sensor_pin = A0;
-const int right_sensor_pin = A1;
+const int left_sensor_pin = 7;
+const int right_sensor_pin = 8;
 const int amber_pin = 12, red_pin = 10,blue_pin = 11;
 
 int left_sensor_state;
@@ -65,15 +65,17 @@ int sensorPin0 = A0;    // select the input pin for the potentiometer
 int sensorValue0 = 0;  // variable to store the value coming from the sensor
 int sensorPin1 = A1;    // select the input pin for the potentiometer
 int sensorValue1 = 0;  // variable to store the value coming from the sensor
-int sensorPin2 = A2;    // select the input pin for the potentiometer
-int sensorValue2 = 0;  // variable to store the value coming from the sensor
+//int sensorPin2 = A2;    // select the input pin for the potentiometer
+//int sensorValue2 = 0;  // variable to store the value coming from the sensor
 int red_blue = 0;
 
 // LED variables
+const int amber_pin = 12, red_pin = 10,blue_pin = 11;
 const int RED = 1, BLUE = 2, AMBER = 3;
 int current_LED = 12;
 unsigned long two_hz_delay = 0;
 boolean AmberON = false, On = true, Off = false;
+
 
 //ultrasonic sensor pin
 const int trigPin = 9;
@@ -590,14 +592,14 @@ void blockPickUp(){ // Assuming this is also used for ditection
   
       sensorValue1 = analogRead(sensorPin1);
  // Serial.println(sensorValue1);
-  
-      sensorValue2 = analogRead(sensorPin2);
- // Serial.println(sensorValue2);
-      if ((sensorValue1) > sensorValue2){
+
+      if ((sensorValue1 - sensorValue0) > 0){
+        red_blue = 0;
         LED_Change(RED,true);
         hasRedBlock = true;
       }
       else{
+        red_blue = 1;
         LED_Change(BLUE,true);
         hasBlueBlock = true;
       }

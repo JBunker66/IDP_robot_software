@@ -25,8 +25,8 @@ Adafruit_DCMotor *pincerR = AFMS.getMotor(4);
   int pincer_delay = 1000;
 
 //OPB line Sensor Connection
-const int left_sensor_pin = A0;
-const int right_sensor_pin = A1;
+const int left_sensor_pin = 8;
+const int right_sensor_pin = 9;
 
 
 
@@ -66,8 +66,6 @@ int sensorPin0 = A0;    // select the input pin for the potentiometer
 int sensorValue0 = 0;  // variable to store the value coming from the sensor
 int sensorPin1 = A1;    // select the input pin for the potentiometer
 int sensorValue1 = 0;  // variable to store the value coming from the sensor
-int sensorPin2 = A2;    // select the input pin for the potentiometer
-int sensorValue2 = 0;  // variable to store the value coming from the sensor
 int red_blue = 0;
 
 // LED variables
@@ -389,7 +387,7 @@ void tTurn(int i){
 }
 
 void lineFollowMain(){
-//  LED_Flash();
+  LED_Flash();
   
   //read from OPB line sensor
   left_sensor_state = digitalRead(left_sensor_pin);
@@ -562,9 +560,9 @@ void blockPickUp(){ // Assuming this is also used for ditection
       sensorValue1 = analogRead(sensorPin1);
  // Serial.println(sensorValue1);
   
-      sensorValue2 = analogRead(sensorPin2);
+//      sensorValue2 = analogRead(sensorPin2);
  // Serial.println(sensorValue2);
-      if ((sensorValue1) > sensorValue2){
+      if ((sensorValue1 - sensorValue0) > 0){
         LED_Change(RED,true);
         hasRedBlock = true;
       }
@@ -597,19 +595,17 @@ void LED_Change(int colour, boolean ONf){
 
 // Function to make the LED flash - if there is a long sub function will need to add this to that to
 void LED_Flash(){
-  if(!hasRedBlock && !hasBlueBlock){
     if(millis() - two_hz_delay >= 250){
     if(AmberON){
       digitalWrite(amber_pin, LOW);
-      Serial.println("OFF");
+//      Serial.println("OFF");
       AmberON = false;
     }
     else{
       digitalWrite(amber_pin, HIGH);
-      Serial.println("ON");
+//      Serial.println("ON");
       AmberON = true;
     } 
     two_hz_delay = millis();
   }    
-  }
 }
