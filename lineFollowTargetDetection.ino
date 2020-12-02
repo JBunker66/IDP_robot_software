@@ -377,6 +377,7 @@ void tTurn(int i){
         motorR->setSpeed(70);      
         motorR->run(FORWARD);
         delay(turn_delay);
+        LED_Flash();
         
         right_sensor_state = digitalRead(right_sensor_pin);
         if(right_sensor_state == 1){
@@ -384,6 +385,7 @@ void tTurn(int i){
             motorR->setSpeed(70);      
             motorR->run(FORWARD);
             delay(turn_delay);
+            LED_Flash();
             right_sensor_state = digitalRead(right_sensor_pin);
             if(right_sensor_state == 0){
               break;
@@ -405,6 +407,7 @@ void tTurn(int i){
             motorL->setSpeed(70);      
             motorL->run(BACKWARD);
             delay(turn_delay);
+            LED_Flash();
             left_sensor_state = digitalRead(left_sensor_pin);
             if(left_sensor_state == 0){
               break;
